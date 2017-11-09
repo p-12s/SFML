@@ -25,6 +25,12 @@ int main()
     vLetterPart2.setFillColor(sf::Color(193, 73, 83));
     window.draw(vLetterPart2);
 
+    sf::RectangleShape vLetterPart3;
+    vLetterPart3.setSize({42, 20});
+    vLetterPart3.setPosition({181, 468});
+    vLetterPart3.setFillColor(sf::Color(193, 73, 83));
+    window.draw(vLetterPart3);
+
     // P letter
     sf::RectangleShape pLetterPart1;
     pLetterPart1.setSize({45, 372});

@@ -3,17 +3,22 @@
 #include <algorithm>
 #include <iostream>
 
-#define MAX_SPEED_OF_ROTATION 15.f
-
 // Инициализируем фигуру-указатель
 void init(sf::ConvexShape &pointer)
 {
-    pointer.setPointCount(3);
-    pointer.setPoint(0, {40, 0});
-    pointer.setPoint(1, {-20, -20});
-    pointer.setPoint(2, {-20, 20});
+    pointer.setPointCount(7);
+    pointer.setPoint(0, {52, 0});
+    pointer.setPoint(1, {0, -52});
+    pointer.setPoint(2, {0, -26});
+    pointer.setPoint(3, {-52, -26});
+    pointer.setPoint(4, {-52, 26});
+    pointer.setPoint(5, {0, 26});
+    pointer.setPoint(6, {0, 52});
+
     pointer.setPosition({400, 300});
-    pointer.setFillColor(sf::Color(0xFF, 0x80, 0x00));
+    pointer.setFillColor(sf::Color(255, 255, 0));
+    pointer.setOutlineColor(sf::Color(0, 0, 0));
+    pointer.setOutlineThickness(2);
 }
 
 // Переводит радианы в градусы
@@ -51,53 +56,41 @@ void pollEvents(sf::RenderWindow &window, sf::Vector2f &mousePosition)
 // Обновляет фигуру, указывающую на мышь
 void update(const sf::Vector2f &mousePosition, sf::ConvexShape &pointer, float dt)
 {
-    // вектор, направленный от центра фигуры к позиции мыши
+    static const float maxSpeedOfRotation = 90;
     const sf::Vector2f delta = mousePosition - pointer.getPosition();
-    // угол в радианах
-    float angleToMause = atan2(delta.y, delta.x);
-
-    std::cout << "mouse x=" << mousePosition.x << ", y=" << mousePosition.y << std::endl;
-
-    if (angleToMause < 0)
+    float angle = atan2(delta.y, delta.x);
+    if (angle < 0)
     {
-        angleToMause += 2 * M_PI;
+        angle += 2 * M_PI;
     }
-    angleToMause = toDegrees(angleToMause);
-    std::cout << "angleToMause = " << angleToMause << std::endl;
+    angle = toDegrees(angle);
 
-    // возможный поворот фигуры за время dt
-    const float maxDegreesPerTimePeriod = MAX_SPEED_OF_ROTATION * dt;
+    const float maxDegreesPerTimePeriod = maxSpeedOfRotation * dt;
+    const float degreesBetweenMouseAndPointer = std::abs(angle - pointer.getRotation());
 
-    // разница (по модулю) между углом мышки и углом фигуры
-    const float degreesBetweenPointerAndMouse = std::abs(angleToMause - pointer.getRotation());
-
-    if (angleToMause != pointer.getRotation())
+    if (angle != pointer.getRotation())
     {
-        const float deltaRotationDegrees = std::min(degreesBetweenPointerAndMouse, maxDegreesPerTimePeriod);
-        if (angleToMause > pointer.getRotation())
+        const float minDegree = std::min(degreesBetweenMouseAndPointer, maxDegreesPerTimePeriod);
+        if (angle > pointer.getRotation())
         {
-            if (angleToMause - 180 > pointer.getRotation())
+            if (angle - 180 > pointer.getRotation())
             {
-                // вращаем против часовой
-                pointer.setRotation(pointer.getRotation() - deltaRotationDegrees);
+                pointer.setRotation(pointer.getRotation() - minDegree);
             }
             else
             {
-                // по часовой
-                pointer.setRotation(pointer.getRotation() + deltaRotationDegrees);
+                pointer.setRotation(pointer.getRotation() + minDegree);
             }
         }
         else
         {
-            if (angleToMause + 180 > pointer.getRotation())
+            if (angle + 180 < pointer.getRotation())
             {
-                // против
-                pointer.setRotation(pointer.getRotation() - deltaRotationDegrees);
+                pointer.setRotation(pointer.getRotation() + minDegree);
             }
             else
             {
-                // по часовой
-                pointer.setRotation(pointer.getRotation() + deltaRotationDegrees);
+                pointer.setRotation(pointer.getRotation() - minDegree);
             }
         }
     }
@@ -106,7 +99,7 @@ void update(const sf::Vector2f &mousePosition, sf::ConvexShape &pointer, float d
 // Рисует и выводит один кадр
 void redrawFrame(sf::RenderWindow &window, sf::ConvexShape &pointer)
 {
-    window.clear();
+    window.clear({255, 255, 255});
     window.draw(pointer);
     window.display();
 }
@@ -115,13 +108,13 @@ int main()
 {
     constexpr unsigned WINDOW_WIDTH = 800;
     constexpr unsigned WINDOW_HEIGHT = 600;
-    const int ANTIALIASING_LEVEL = 8;
+    static const int ANTIALIASING_LEVEL = 8;
 
     sf::ContextSettings settings;
     settings.antialiasingLevel = ANTIALIASING_LEVEL;
     sf::RenderWindow window(
         sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}),
-        "Pointer follows mouse",
+        "Arrow follows mouse",
         sf::Style::Default,
         settings);
 

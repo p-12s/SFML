@@ -8,22 +8,35 @@ constexpr unsigned WINDOW_HEIGHT = 600;
 int main()
 {
     constexpr int pointCount = 200;
+    const int halfRadius = 200;
     const sf::Vector2f ellipseRadius = {200.f, 80.f};
 
-    sf::RenderWindow window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "Polar Rose");
+    sf::Clock clock;
+    sf::Vector2f speed = {100.f, 100.f};
 
-    sf::ConvexShape shape;
-    shape.setPosition({400, 320});
-    shape.setFillColor(sf::Color(255, 255, 255));
+    // Создаем окно с параметрами сглаживания
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+    sf::RenderWindow window(
+        sf::VideoMode({800, 600}), "Polar Rose",
+        sf::Style::Default, settings);
 
-    shape.setPointCount(pointCount);
+    // Объявляем фигуру, которая будет выглядеть как эллипс
+    sf::ConvexShape ellipse;
+    ellipse.setPosition({400, 200});
+    ellipse.setFillColor(sf::Color(41, 112, 255));
+
+    ellipse.setPointCount(pointCount);
+
     for (int pointNo = 0; pointNo < pointCount; ++pointNo)
     {
         float angle = float(2 * M_PI * pointNo) / float(pointCount);
-        sf::Vector2f point = sf::Vector2f{
-            ellipseRadius.x * std::sin(angle),
-            ellipseRadius.y * std::cos(angle)};
-        shape.setPoint(pointNo, point);
+        float radius = halfRadius * sin(6 * angle);
+
+        sf::Vector2f point = {
+            radius * std::sin(angle),
+            radius * std::cos(angle)};
+        ellipse.setPoint(pointNo, point);
     }
 
     while (window.isOpen())
@@ -37,8 +50,32 @@ int main()
             }
         }
 
+        const float dt = clock.restart().asSeconds();
+
+        sf::Vector2f position = ellipse.getPosition();
+        position += speed * dt;
+
+        if ((position.x + halfRadius >= WINDOW_WIDTH) && (speed.x > 0))
+        {
+            speed.x = -speed.x;
+        }
+        if ((position.x - halfRadius < 0) && (speed.x < 0))
+        {
+            speed.x = -speed.x;
+        }
+        if ((position.y + halfRadius >= WINDOW_HEIGHT) && (speed.y > 0))
+        {
+            speed.y = -speed.y;
+        }
+        if ((position.y - halfRadius < 0) && (speed.y < 0))
+        {
+            speed.y = -speed.y;
+        }
+
+        ellipse.setPosition(position);
+
         window.clear();
-        window.draw(shape);
+        window.draw(ellipse);
         window.display();
     }
 }

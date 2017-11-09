@@ -1,67 +1,12 @@
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
-#include <vector>
-#include <iostream>
-#include <string>
-#include <set>
-#include <random>
-#include <ctime>
-#include <random>
-#include <cassert>
-
 #include "generator.h"
-//#include "color.h"
-
-/*
-struct PRNG
-{
-    std::mt19937 engine;
-};
-*/
+#include "color.h"
 
 struct Ball
 {
     sf::CircleShape ball;
     sf::Vector2f speed;
 };
-/*
-void initGenerator(PRNG &generator)
-{
-    // Используем время с 1 января 1970 года в секундах как случайное зерно
-    unsigned seed = unsigned(std::time(nullptr));
-    // Делим по модулю на псевдо-случайное число
-    seed = seed % (std::rand() + 1);
-    generator.engine.seed(seed);
-}
 
-// Генерирует целое число в диапазоне [minValue, maxValue)
-unsigned random(PRNG &generator, unsigned minValue, unsigned maxValue)
-{
-    // Проверяем корректность аргументов
-    assert(minValue < maxValue);
-
-    // Создаём распределение
-    std::uniform_int_distribution<unsigned> distribution(minValue, maxValue);
-
-    // Вычисляем псевдослучайное число: вызовем распределение как функцию,
-    //  передав генератор произвольных целых чисел как аргумент.
-    return distribution(generator.engine);
-}
-
-// Генерирует число с плавающей точкой в диапазоне [minValue, maxValue)
-float randomFloat(PRNG &generator, float minValue, float maxValue)
-{
-    // Проверяем корректность аргументов
-    assert(minValue < maxValue);
-
-    // Создаём распределение
-    std::uniform_real_distribution<float> distribution(minValue, maxValue);
-
-    // Вычисляем псевдослучайное число: вызовем распределение как функцию,
-    //  передав генератор произвольных целых чисел как аргумент.
-    return distribution(generator.engine);
-}
-*/
 void updateSpeed(std::vector<Ball> &elements, const int windowWidth, const int windowHeight)
 {
     for (size_t fi = 0; fi < elements.size(); ++fi)
@@ -130,16 +75,13 @@ void ballStateRecalculation(Ball &first, Ball &second)
     double tempItem1 = vectorsScalarComposition(speedDifferenceToW1, deltaToW1) / pow(getLength(deltaToW1), 2);
     sf::Vector2f tempItem11 = {float(tempItem1 * deltaToW1.x), float(tempItem1 * deltaToW1.y)};
     sf::Vector2f w1 = first.speed - tempItem11;
-    //sf::Vector2f w1 = first.speed - (vectorsScalarComposition(speedDifferenceToW1, deltaToW1) / pow(deltaToW1, 2)) * deltaToW1;
 
     sf::Vector2f deltaToW2 = secondPosition - firstPosition;
     sf::Vector2f speedDifferenceToW2 = second.speed - first.speed;
 
     double tempItem2 = vectorsScalarComposition(speedDifferenceToW2, deltaToW2) / pow(getLength(deltaToW2), 2);
     sf::Vector2f tempItem22 = {float(tempItem2 * deltaToW2.x), float(tempItem2 * deltaToW2.y)};
-    //sf::Vector2f w2 = second.speed - tempItem2 * deltaToW2;
     sf::Vector2f w2 = second.speed - tempItem22;
-    //sf::Vector2f w2 = second.speed - (vectorsScalarComposition(speedDifferenceToW2, deltaToW2) / pow(deltaToW2, 2)) * deltaToW2;
 
     first.speed = w1;
     second.speed = w2;
@@ -191,33 +133,34 @@ void updatePosition(std::vector<Ball> &elements, const float dt)
     }
 }
 
-// Получаем скорость от (-150f, -150f) до (150f, 150f)
-sf::Vector2f getSpeed()
+// Получаем скорость
+sf::Vector2f getSpeed(PRNG &generator)
 {
-    constexpr float minSpeedNumber = -200.f;
-    constexpr float maxSpeedNumber = 200.f;
+    constexpr float minSpeedNumber = -250.f;
+    constexpr float maxSpeedNumber = 250.f;
 
-    PRNG *generator = newGenerator(); //newGenerator(generator)
-    sf::Vector2f result = {
+    return {
         randomFloat(generator, minSpeedNumber, maxSpeedNumber),
         randomFloat(generator, minSpeedNumber, maxSpeedNumber)};
-    delete generator;
-    return result;
 }
 
-// Получаем цвет от (0, 0, 0) до (255, 255, 255)
-sf::Color getColor()
+void calculationWithConstantMinimumTime(
+    float dt,
+    std::vector<Ball> &elements,
+    const int windowWidth,
+    const int windowHeight,
+    sf::RenderWindow &window)
 {
-    constexpr int minColorNumber = 0;
-    constexpr int maxColorNumber = 255;
-
-    PRNG generator;
-    initGenerator(generator);
-
-    return sf::Color(
-        random(generator, minColorNumber, maxColorNumber),
-        random(generator, minColorNumber, maxColorNumber),
-        random(generator, minColorNumber, maxColorNumber));
+    const unsigned additionalCalculationsCount = 10;
+    for (auto i = 0; i < additionalCalculationsCount; ++i)
+    {
+        updatePosition(elements, (dt / additionalCalculationsCount));
+        updateSpeed(elements, windowWidth, windowHeight);
+        checkOutCollisions(elements);
+        window.clear();
+        drow(window, elements);
+        window.display();
+    }
 }
 
 int main()
@@ -235,18 +178,22 @@ int main()
         sf::Style::Default,
         settings);
 
-    constexpr unsigned ballsCount = 10;
-    constexpr unsigned minBallSize = 20;
+    constexpr unsigned ballsCount = 9;
+    constexpr unsigned minBallSize = 25;
 
     std::vector<Ball> balls(ballsCount);
+
+    PRNG generator;
+    initGenerator(generator);
 
     for (size_t fi = 0; fi < balls.size(); ++fi)
     {
         int ballRadius = minBallSize + fi;
+
         balls[fi].ball.setRadius(ballRadius);
         balls[fi].ball.setPosition({float(30 + (fi * 65)), float(30 + (fi * 65))});
-        balls[fi].speed = getSpeed(); //{50.f, 50.f}; //getSpeed();
-        balls[fi].ball.setFillColor(getColor());
+        balls[fi].speed = getSpeed(generator);
+        balls[fi].ball.setFillColor(getColor(generator));
         // Устанавливаем начало координат каждого шара в его центр
         balls[fi].ball.setOrigin(ballRadius, ballRadius);
     }
@@ -264,13 +211,7 @@ int main()
             }
         }
 
-        const float dt = clock.restart().asSeconds();
-
-        updatePosition(balls, dt);
-        updateSpeed(balls, WINDOW_WIDTH, WINDOW_HEIGHT);
-        checkOutCollisions(balls);
-        window.clear();
-        drow(window, balls);
-        window.display();
+        float dt = clock.restart().asSeconds();
+        calculationWithConstantMinimumTime(dt, balls, WINDOW_WIDTH, WINDOW_HEIGHT, window);
     }
 }

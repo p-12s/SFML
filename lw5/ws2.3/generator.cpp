@@ -1,20 +1,10 @@
 #include "generator.h"
 
-struct PRNG
+void initGenerator(PRNG &generator)
 {
-    std::mt19937 engine;
-};
-
-PRNG *newGenerator()
-{
-    PRNG *generator = new PRNG;
     // Используем время с 1 января 1970 года в секундах как случайное зерно
     unsigned seed = unsigned(std::time(nullptr));
-    // Делим по модулю на псевдо-случайное число
-    seed = seed % (std::rand() + 1);
-    generator->engine.seed(seed);
-
-    return generator;
+    generator.engine.seed(seed);
 }
 
 // Генерирует целое число в диапазоне [minValue, maxValue)
