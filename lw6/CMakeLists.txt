@@ -9,4 +9,4 @@ find_package(JPEG REQUIRED)
 find_package(SFML 2 COMPONENTS window graphics system REQUIRED)
 
 add_subdirectory(ws3.1)
-add_subdirectory(ws3.2)
+#add_subdirectory(ws3.2)

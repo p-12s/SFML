@@ -8,7 +8,7 @@ void initializePackman(sf::CircleShape &shape)
     shape.setPosition(100, 0);
 }
 
-void handleEvents(sf::RenderWindow & window, Packman &packman)
+void handleEvents(sf::RenderWindow &window, Packman &packman)
 {
     sf::Event event;
     while (window.pollEvent(event))
