@@ -3,18 +3,39 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include <string>
+
+//TODO удалить комментарии
+constexpr unsigned WINDOW_WIDTH = 800;
+constexpr unsigned WINDOW_HEIGHT = 600;
+constexpr unsigned ANTIALIASING_LEVEL = 8;
 
 /*
-Игрок видит своего героя
-и уровень его здоровья.
-Танк в виде синего круга с пушкой.
+2 этап:
 
-- видеть танк;
-- видеть уровень здоровья;
+- реализовать перемещение танка с помошью клавиш, не далее чем рамки экрана
+    - посмотреть реализацию с клавишами в воркшопе последнем
+    - научить танк двигаться
 
-- может быть стоит попутно реализовавать Пакмена?
-- создать объект танка и добавить ему свойство - уровень здоровья;
-- вывести танк на экран;
+
+
+- реализовать ограничение для перемещения такна в виде рамок окна
+- научить танк стрелять (создание оъектов с размерами и начальной скоростью)
+- установить ограничение по выпуску снарядов за единицу времени
+
+- создать 5-6 мин. Каждая из них имеет:
+ - вид (треугольник, квадрат, 6-ти угольник)
+  - размер
+  - цвет
+  - уровень "здоровья", который будет кратен урону от снаряда моего танка (или бота)
+  - рандомное расположение, не занятое положением моего танка
+
+Что можно еще добавить минам:
+ - скорость и направление движения
+ - авто-наведение на танк (однако танк может получить бонус - холодильник, и мины перестанут "наводиться")
+ 
+ Что можно еще добавить танку:
+ - движение по диагонали
 */
 
 // будет сущность танка, то что на экране
@@ -31,8 +52,8 @@ struct Tank
 struct PowerBank
 {
     // TODO можно устанавливать его размер в зависимости от уровня (рост)
-    sf::RectangleShape bottomBg;
-    sf::RectangleShape topBg;
+    sf::RectangleShape batteryBackground;
+    sf::RectangleShape batteryLevelFill;
     int life;
 };
 
@@ -42,7 +63,9 @@ void initTank(Tank &tank);
 float toDegrees(float radians);
 void onMouseMove(const sf::Event::MouseMoveEvent &event, sf::Vector2f &mousePosition);
 void pollEvents(sf::RenderWindow &window, sf::Vector2f &mousePosition);
+
 void update(const sf::Vector2f &mousePosition, Tank &tank);
+
 void redrawFrame(sf::RenderWindow &window, Tank &tank);
 
 // Переводит полярные координаты в декартовы
@@ -108,21 +131,21 @@ void initPowerBank(PowerBank &powerBank, Tank &tank)
     powerBank.life = POWER_BANK_START_LIFE_LEVEL;
 
     // фон батареи здоровья
-    powerBank.bottomBg.setSize({POWER_BANK_WIDTH, POWER_BANK_HEIGHT});
-    powerBank.bottomBg.setOrigin({0, (POWER_BANK_HEIGHT / 2)});
-    powerBank.bottomBg.setFillColor(sf::Color(53, 53, 53));
-    powerBank.bottomBg.setPosition({(tank.position.x - POWER_BANK_WIDTH / 2),
-                                    (tank.position.y + 30)});
+    powerBank.batteryBackground.setSize({POWER_BANK_WIDTH, POWER_BANK_HEIGHT});
+    powerBank.batteryBackground.setOrigin({0, (POWER_BANK_HEIGHT / 2)});
+    powerBank.batteryBackground.setFillColor(sf::Color(53, 53, 53));
+    powerBank.batteryBackground.setPosition({(tank.position.x - POWER_BANK_WIDTH / 2),
+                                             (tank.position.y + 30)});
 
     // закрашенный уровень батареи здоровья
-    float topBgHeight = POWER_BANK_HEIGHT - 2;
-    float topBgWidth = (POWER_BANK_WIDTH - 2) * powerBank.life / POWER_BANK_START_LIFE_LEVEL;
-    powerBank.topBg.setSize({topBgWidth, topBgHeight});
-    powerBank.topBg.setOrigin({-1, (topBgHeight / 2)});
-    powerBank.topBg.setFillColor(sf::Color(40, 160, 40));
+    float batteryLevelFillHeight = POWER_BANK_HEIGHT - 2;
+    float batteryLevelFillWidth = (POWER_BANK_WIDTH - 2) * powerBank.life / POWER_BANK_START_LIFE_LEVEL;
+    powerBank.batteryLevelFill.setSize({batteryLevelFillWidth, batteryLevelFillHeight});
+    powerBank.batteryLevelFill.setOrigin({-1, (batteryLevelFillHeight / 2)});
+    powerBank.batteryLevelFill.setFillColor(sf::Color(40, 160, 40));
 
-    powerBank.topBg.setPosition({powerBank.bottomBg.getPosition().x,
-                                 (powerBank.bottomBg.getPosition().y)});
+    powerBank.batteryLevelFill.setPosition({powerBank.batteryBackground.getPosition().x,
+                                            (powerBank.batteryBackground.getPosition().y)});
 
     //updateTankElements(tank);
 }
@@ -136,12 +159,12 @@ float toDegrees(float radians)
 // Обрабатывает событие MouseMove, обновляя позицию мыши
 void onMouseMove(const sf::Event::MouseMoveEvent &event, sf::Vector2f &mousePosition)
 {
-    std::cout << "mouse x=" << event.x << ", y=" << event.y << std::endl;
+    // std::cout << "mouse x=" << event.x << ", y=" << event.y << std::endl;
     mousePosition = {float(event.x), float(event.y)};
 }
 
 // Опрашивает и обрабатывает доступные события в цикле
-void pollEvents(sf::RenderWindow &window, sf::Vector2f &mousePosition)
+void pollEvents(sf::RenderWindow &window, Tank &tank, sf::Vector2f &mousePosition)
 {
     sf::Event event;
     while (window.pollEvent(event))
@@ -154,18 +177,48 @@ void pollEvents(sf::RenderWindow &window, sf::Vector2f &mousePosition)
         case sf::Event::MouseMoved:
             onMouseMove(event.mouseMove, mousePosition);
             break;
+        case sf::Event::KeyPressed:
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+            {
+                window.close();
+                break;
+            }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            {
+                std::cout << "Move to Left" << std::endl;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            {
+                std::cout << "Move to Right" << std::endl;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            {
+                std::cout << "Move to Up" << std::endl;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            {
+                std::cout << "Move to Down" << std::endl;
+            }
+            // передвинься сюда
+            break;
+
         default:
             break;
         }
     }
 }
 
-// Обновляет фигуру, указывающую на мышь
 void update(const sf::Vector2f &mousePosition, Tank &tank)
 {
+    std::cout << "inner update mouse x=" << mousePosition.x << ", y=" << mousePosition.y << std::endl;
+
     const sf::Vector2f delta = mousePosition - tank.position;
     tank.rotation = atan2(delta.y, delta.x);
     updateTankElements(tank);
+
+    //float dt = clock.restart().asSeconds();
+    //puppeteer.update(dt);
 }
 
 // Рисует и выводит один кадр
@@ -174,25 +227,26 @@ void redrawFrame(sf::RenderWindow &window, Tank &tank, PowerBank &powerBank)
     window.clear({255, 255, 255});
     window.draw(tank.gun);
     window.draw(tank.body);
-    window.draw(powerBank.bottomBg);
-    window.draw(powerBank.topBg);
+    window.draw(powerBank.batteryBackground);
+    window.draw(powerBank.batteryLevelFill);
     window.display();
+}
+
+void createWindow(sf::RenderWindow &window)
+{
+    const std::string title = "Diep.io 2 stage";
+
+    sf::VideoMode videoMode(WINDOW_WIDTH, WINDOW_HEIGHT);
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = ANTIALIASING_LEVEL;
+    window.create(videoMode, title, sf::Style::Default, settings);
 }
 
 int main()
 {
-    constexpr unsigned WINDOW_WIDTH = 800;
-    constexpr unsigned WINDOW_HEIGHT = 600;
-    constexpr unsigned ANTIALIASING_LEVEL = 8;
 
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = ANTIALIASING_LEVEL;
-    // инициализацию окна в отдельную функцию (метод .init, с параметрами)
-    sf::RenderWindow window(
-        sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}),
-        "Diep.io 1 stage",
-        sf::Style::Default,
-        settings);
+    sf::RenderWindow window;
+    createWindow(window);
 
     // время понадобится позже, для плавного поворота и ?перемещения
     sf::Clock clock;
@@ -250,7 +304,8 @@ int main()
 
     while (window.isOpen())
     {
-        pollEvents(window, mousePosition);
+        pollEvents(window, tank, mousePosition);
+        std::cout << "after pollEvents mouse x=" << mousePosition.x << ", y=" << mousePosition.y << std::endl;
         update(mousePosition, tank);
         redrawFrame(window, tank, powerBank);
     }

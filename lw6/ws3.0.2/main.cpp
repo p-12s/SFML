@@ -1,14 +1,8 @@
+#include "field.h"
+#include "packman.h"
 #include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
 
-void initializePackman(sf::CircleShape &shape)
-{
-    shape.setRadius(20);
-    shape.setFillColor(sf::Color::Green);
-    shape.setPosition(100, 0);
-}
-
-void handleEvents(sf::RenderWindow &window, Packman &packman)
+void handleEvents(sf::RenderWindow& window, Packman& packman)
 {
     sf::Event event;
     while (window.pollEvent(event))
@@ -30,26 +24,40 @@ void handleEvents(sf::RenderWindow &window, Packman &packman)
     }
 }
 
-void update(sf::Clock &clock, Packman &packman)
+void update(sf::Clock& clock, Packman& packman)
 {
     const float elapsedTime = clock.getElapsedTime().asSeconds();
     clock.restart();
     updatePackman(packman, elapsedTime);
 }
 
-int main(int, char *[])
+void render(sf::RenderWindow& window, const Packman& packman, const Field& field)
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Window Title");
+    window.clear();
+    drawField(window, field);
+    // пакман рисуется после поля.
+    window.draw(packman.shape);
+    window.display();
+}
+
+int main(int, char* [])
+{
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 4;
+    sf::RenderWindow window(sf::VideoMode(800, 600), "PacMan Game Clone", sf::Style::Close, settings);
+
     Packman packman;
     initializePackman(packman);
+    Field field;
+    initializeField(field);
 
     sf::Clock clock;
 
     while (window.isOpen())
     {
         handleEvents(window, packman);
-        update(packman, clock);
-        render(window, packman);
+        update(clock, packman);
+        render(window, packman, field);
     }
 
     return 0;

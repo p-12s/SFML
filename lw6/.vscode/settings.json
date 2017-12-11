@@ -39,6 +39,8 @@
         "random": "cpp",
         "set": "cpp",
         "string": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "cassert": "cpp",
+        "map": "cpp"
     }
 }
