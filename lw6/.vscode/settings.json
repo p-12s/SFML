@@ -41,6 +41,8 @@
         "string": "cpp",
         "xtree": "cpp",
         "cassert": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "list": "cpp",
+        "tuple": "cpp"
     }
 }

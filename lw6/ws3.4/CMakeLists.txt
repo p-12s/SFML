@@ -1,4 +1,4 @@
-add_executable(ws3.4 main.cpp)
+add_executable(ws3.4 main.cpp color.h color.cpp generator.h generator.cpp)
 
 target_include_directories(ws3.4 PRIVATE ${SFML_INCLUDE_DIR})
 target_compile_features(ws3.4 PUBLIC cxx_std_17)

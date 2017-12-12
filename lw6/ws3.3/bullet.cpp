@@ -1,55 +1,69 @@
-#include "Bullet.h"
-#include "Tank.h"
+#include "bullet.h"
+#include <vector>
+#include <list>
+#include <cmath>
 
-constexpr float BULLET_SPEED = 250.f;
-constexpr float BULLET_SIZE = 5;
-constexpr float BULLET_OUTLINE_SIZE = 3;
-
-const sf::Color BULLET_FILL_COLOR = sf::Color(241, 78, 84);
-const sf::Color BULLET_OUTLINE_COLOR = sf::Color(180, 58, 63);
-
-Bullet::Bullet()
+float length(const sf::Vector2f direction)
 {
-    m_body.setRadius(BULLET_SIZE);
-    m_body.setOrigin({BULLET_SIZE, BULLET_SIZE});
-    m_body.setFillColor(BULLET_FILL_COLOR);
-    m_body.setOutlineColor(BULLET_OUTLINE_COLOR);
-    m_body.setOutlineThickness(BULLET_OUTLINE_SIZE);
+    // найдем длину вектора перемещения от центра стрелки до позиции курсора, |delta| >= 0
+    const float sumOfSquaresOfCoordinates = pow(direction.x, 2) + pow(direction.y, 2);
+    float directionOfMove;
+    if (sumOfSquaresOfCoordinates >= 0)
+    {
+        directionOfMove = sqrt(sumOfSquaresOfCoordinates);
+    }
+    else
+    {
+        directionOfMove = 0;
+    }
+    return directionOfMove;
 }
 
-void Bullet::update(sf::Clock &clock)
+sf::Vector2f normal(const sf::Vector2f direction)
 {
-    const float elapsedTime = clock.restart().asSeconds();
-    // Передвигаем ракету
-    // не останавливать снаряд, а удалять
-    float positionX = m_body.getPosition().x + m_speed.x * elapsedTime;
-    float positionY = m_body.getPosition().y + m_speed.y * elapsedTime;
+    float directionLength = length(direction);
+    return {(direction.x / directionLength), (direction.y / directionLength)};
+}
 
-    if (positionX < 800 && positionX > 0 &&
-        positionY < 600 && positionY > 0)
+Bullet createBullet(Tank &tank, sf::Vector2f &mousePosition)
+{
+    Bullet *bullet = new Bullet;
+    bullet->body.setRadius(BULLET_SIZE);
+    bullet->body.setOrigin(BULLET_SIZE, BULLET_SIZE);
+    bullet->body.setFillColor(BULLET_FILL_COLOR);
+    bullet->body.setOutlineColor(BULLET_OUTLINE_COLOR);
+    bullet->body.setOutlineThickness(BULLET_OUTLINE_SIZE);
+    bullet->body.setPosition(tank.body.getPosition());
+
+    const sf::Vector2f delta = mousePosition - tank.body.getPosition();
+    const sf::Vector2f normalizedVector = normal(delta);
+    bullet->speed = {(BULLET_SPEED * normalizedVector.x),
+                     (BULLET_SPEED * normalizedVector.y)};
+
+    return *bullet;
+}
+
+void updateBullet(Bullet &bullet, float elapsedTime)
+{
+    const float positionX = bullet.body.getPosition().x + bullet.speed.x * elapsedTime;
+    const float positionY = bullet.body.getPosition().y + bullet.speed.y * elapsedTime;
+
+    if (positionX < WINDOW_WIDTH && positionX > 0 && positionY < WINDOW_HEIGHT && positionY > 0)
     {
-        m_body.setPosition({positionX, positionY});
+        bullet.body.setPosition({positionX, positionY});
+    }
+    else
+    {
+        //delete bullet;
     }
 }
 
-// по нажатию пробела создавать
-void Bullet::updateMove(float dt)
+void drawBullet(sf::RenderWindow &window, const Bullet &bullet)
 {
-    /*
-    // Передвигаем танк
-    float positionX = m_position.x + m_speed.x * dt;
-    if (positionX < WINDOW_WIDTH && positionX > 0)
-    {
-        m_position.x = positionX;
-    }
-
-    float positionY = m_position.y + m_speed.y * dt;
-    if (positionY < WINDOW_HEIGHT && positionY > 0)
-    {
-        m_position.y = positionY;
-    }*/
+    window.draw(bullet.body);
 }
 
+/*
 void Bullet::watch(sf::Clock &clock, sf::RenderWindow &window)
 {
     float elapsedTime = clock.getElapsedTime().asSeconds();
@@ -71,3 +85,4 @@ void Bullet::watch(sf::Clock &clock, sf::RenderWindow &window)
         }
     }
 }
+*/

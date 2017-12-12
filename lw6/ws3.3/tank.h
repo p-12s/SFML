@@ -1,11 +1,38 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <iostream>
+#include "constants.h"
 #include <cmath>
 
-constexpr unsigned WINDOW_WIDTH = 800;
-constexpr unsigned WINDOW_HEIGHT = 600;
+enum struct Direction
+{
+  NONE,
+  UP,
+  DOWN,
+  LEFT,
+  RIGHT
+};
 
+struct Tank
+{
+  Direction direction;
+  sf::RectangleShape gun;
+  sf::CircleShape body;
+  //sf::Vector2f position;
+  sf::Vector2f speed;
+  float rotation;
+
+  sf::RectangleShape batteryBgFill;
+  sf::RectangleShape batteryLevelFill;
+  int levelOfLife;
+};
+
+static void updateTankDirection(Tank &tank);
+static void updateTankRotation(Tank &tank, sf::Vector2f &mousePosition);
+void initializeTank(Tank &tank);
+void updateTank(Tank &tank, float elapsedTime, sf::Vector2f &mousePosition);
+void drawTank(sf::RenderWindow &window, const Tank &tank);
+
+/*
 class Tank
 {
 private:
@@ -44,3 +71,4 @@ public:
 
   float getRotation();
 };
+*/

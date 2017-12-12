@@ -1,18 +1,46 @@
 #include "Bomb.h"
 #include <cassert>
 
-constexpr float TRIANGLE_BOMB_SIZE = 20;
-constexpr float SQUARE_BOMB_SIZE = 20;
-constexpr float PANTAGON_BOMB_SIZE = 40;
+void initializeBomb(Bomb &bomb)
+{
+    bomb.body.setFillColor(TRIANGLE_FILL_COLOR);
+    bomb.body.setOutlineColor(TRIANGLE_OUTLINE_COLOR);
+    bomb.body.setOutlineThickness(3);
 
-constexpr float BOMB_POWER_BANK_WIDTH = 36;
-constexpr float BOMB_POWER_BANK_HEIGHT = 6;
-constexpr int BOMB_POWER_BANK_START_LIFE_LEVEL = 100;
+    bomb.body.setPosition({200, 120}); //TODO рандомом получать
+    bomb.body.setPointCount(3);
+    bomb.body.setPoint(0, {5, -10});
+    bomb.body.setPoint(1, {5, 10});
+    bomb.body.setPoint(2, {-15, 0});
 
-const sf::Color TRIANGLE_FILL_COLOR = sf::Color(252, 118, 119);
-const sf::Color TRIANGLE_OUTLINE_COLOR = sf::Color(189, 88, 89);
-// TODO добавить цвета других
+    // здоровье
+    bomb.levelOfLife = BOMB_POWER_BANK_START_LIFE_LEVEL;
 
+    // фон батареи здоровья
+    bomb.batteryBgFill.setSize({BOMB_POWER_BANK_WIDTH, BOMB_POWER_BANK_HEIGHT});
+    bomb.batteryBgFill.setOrigin({0, (BOMB_POWER_BANK_HEIGHT / 2)});
+    bomb.batteryBgFill.setFillColor(BATTERY_OUTLINE_COLOR);
+
+    // закрашенный уровень батареи здоровья
+    float batteryLevelFillHeight = BOMB_POWER_BANK_HEIGHT - 2;
+    float batteryLevelFillWidth = (BOMB_POWER_BANK_WIDTH - 2) * bomb.levelOfLife / BOMB_POWER_BANK_START_LIFE_LEVEL;
+    bomb.batteryLevelFill.setSize({batteryLevelFillWidth, batteryLevelFillHeight});
+    bomb.batteryLevelFill.setOrigin({-1, (batteryLevelFillHeight / 2)});
+    bomb.batteryLevelFill.setFillColor(BATTERY_FILL_COLOR);
+
+    // положение уровная жизни
+    bomb.batteryBgFill.setPosition({(bomb.body.getPosition().x - BOMB_POWER_BANK_WIDTH / 2), (bomb.body.getPosition().y + 30)});
+    bomb.batteryLevelFill.setPosition({bomb.batteryBgFill.getPosition().x, (bomb.batteryBgFill.getPosition().y)});
+}
+
+void drawBomb(sf::RenderWindow &window, const Bomb &bomb)
+{
+    window.draw(bomb.body);
+    window.draw(bomb.batteryBgFill);
+    window.draw(bomb.batteryLevelFill);
+}
+
+/*
 Bomb::Bomb()
 {
     m_bomb.setFillColor(TRIANGLE_FILL_COLOR);
@@ -51,3 +79,4 @@ void Bomb::drow(sf::RenderWindow &window)
     window.draw(m_batteryBgFill);
     window.draw(m_batteryLevelFill);
 }
+*/

@@ -1,8 +1,19 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <iostream>
+#include "constants.h"
 #include <cmath>
 
+struct Bomb
+{
+  sf::ConvexShape body;
+  sf::RectangleShape batteryBgFill;
+  sf::RectangleShape batteryLevelFill;
+  int levelOfLife;
+};
+
+void initializeBomb(Bomb &bomb);
+void drawBomb(sf::RenderWindow &window, const Bomb &bomb);
+/*
 class Bomb
 {
 private:
@@ -17,3 +28,4 @@ public:
 
   void drow(sf::RenderWindow &window);
 };
+*/

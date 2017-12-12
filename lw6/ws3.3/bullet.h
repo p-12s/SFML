@@ -1,20 +1,19 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "constants.h"
+#include "tank.h"
 
-class Bullet
+struct Bullet
 {
-  private:
-    sf::CircleShape m_body;
-    sf::Vector2f m_speed;
-
-  public:
-    Bullet();
-
-    void update(sf::Clock &clock);
-
-    void updateMove(float dt);
-
-    void watch(sf::Clock &clock, sf::RenderWindow &window);
-
+  sf::CircleShape body;
+  sf::Vector2f speed;
 };
+
+Bullet createBullet(Tank &tank, sf::Vector2f &mousePosition);
+void updateBullet(Bullet &bullet, float elapsedTime);
+void drawBullet(sf::RenderWindow &window, const Bullet &bullets);
+
+// пустой вектор пуль
+// по пробелу добавляем
+// по достижении стены удаляем
