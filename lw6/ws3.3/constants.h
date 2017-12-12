@@ -23,6 +23,8 @@ const sf::Color BODY_FILL_COLOR = sf::Color(4, 111, 231);
 const sf::Color BATTERY_FILL_COLOR = sf::Color(40, 160, 40);
 const sf::Color BATTERY_OUTLINE_COLOR = GUN_OUTLINE_COLOR;
 
+constexpr int LIVE_DAMAGE_LEVEL = 50;
+
 // Bullets
 constexpr float BULLET_SPEED = 250.f;
 constexpr float BULLET_SIZE = 5;
@@ -41,6 +43,7 @@ constexpr float BOMB_POWER_BANK_WIDTH = 36;
 constexpr float BOMB_POWER_BANK_HEIGHT = 6;
 constexpr int BOMB_POWER_BANK_START_LIFE_LEVEL = 100;
 
+constexpr int START_TRIANGLE_BOMB_COUNT = 10;
 const sf::Color TRIANGLE_FILL_COLOR = sf::Color(252, 118, 119);
 const sf::Color TRIANGLE_OUTLINE_COLOR = sf::Color(189, 88, 89);
 

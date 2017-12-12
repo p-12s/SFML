@@ -13,7 +13,4 @@ struct Bullet
 Bullet createBullet(Tank &tank, sf::Vector2f &mousePosition);
 void updateBullet(Bullet &bullet, float elapsedTime);
 void drawBullet(sf::RenderWindow &window, const Bullet &bullets);
-
-// пустой вектор пуль
-// по пробелу добавляем
-// по достижении стены удаляем
+sf::FloatRect getBulletBounds(const Bullet &bullet);

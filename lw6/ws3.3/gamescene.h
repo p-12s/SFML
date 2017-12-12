@@ -18,7 +18,8 @@ struct GameScene
 {
     //Field field;    // TODO можно нарисовать поле вместо текстуры
     Tank tank;
-    Bomb bomb; // потом список
+    //Bomb bomb; // потом список
+    std::vector<Bomb> bombs;
     //std::map<GhostId, Ghost> ghosts;
     std::vector<Bullet> bullets;
     GameState gameState;

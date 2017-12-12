@@ -28,7 +28,7 @@ void pollEvents(sf::RenderWindow &window, sf::Vector2f &mousePosition)
 
 void createWindow(sf::RenderWindow &window)
 {
-    const std::string title = "Diep.io Game Clone - 3th stage";
+    const std::string title = "Diep.io Game Clone - 4th stage";
     sf::VideoMode videoMode(WINDOW_WIDTH, WINDOW_HEIGHT);
     sf::ContextSettings settings;
     settings.antialiasingLevel = ANTIALIASING_LEVEL;

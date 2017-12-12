@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "constants.h"
+#include "generator.h"
 #include <cmath>
 
 struct Bomb
@@ -11,21 +12,7 @@ struct Bomb
   int levelOfLife;
 };
 
-void initializeBomb(Bomb &bomb);
+void initializeBombs(std::vector<Bomb> &bombs);
 void drawBomb(sf::RenderWindow &window, const Bomb &bomb);
-/*
-class Bomb
-{
-private:
-  sf::ConvexShape m_bomb;
-
-  sf::RectangleShape m_batteryBgFill;
-  sf::RectangleShape m_batteryLevelFill;
-  int m_levelOfLife;
-
-public:
-  Bomb();
-
-  void drow(sf::RenderWindow &window);
-};
-*/
+sf::FloatRect getBombBounds(const Bomb &bomb);
+void injureBomb(Bomb &bomb);

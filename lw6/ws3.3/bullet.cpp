@@ -63,26 +63,7 @@ void drawBullet(sf::RenderWindow &window, const Bullet &bullet)
     window.draw(bullet.body);
 }
 
-/*
-void Bullet::watch(sf::Clock &clock, sf::RenderWindow &window)
+sf::FloatRect getBulletBounds(const Bullet &bullet)
 {
-    float elapsedTime = clock.getElapsedTime().asSeconds();
-    if (elapsedTime > 1)
-    {
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-        {
-            // удобно взять положение и напрваление танка
-            // выстрел
-
-            // позиция, скорость, поворот
-            m_body.setPosition({300, 300}); // брать у танка
-            m_speed = {-100.f, -100.f};     // зависит от направления пушки танка
-
-            window.draw(m_body);
-            std::cout << "bum!!" << std::endl;
-
-            clock.restart();
-        }
-    }
+    return bullet.body.getGlobalBounds();
 }
-*/

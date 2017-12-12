@@ -1,20 +1,6 @@
 #include "gamescene.h"
 #include <cassert>
 
-/*
-static void initializeGhostById(std::map<GhostId, Ghost> &ghosts, GhostId ghostId)
-{
-    // В C++ `operator[]` для контейнеров STL создаёт запись,
-    //  если переданного ключа ещё нет в map.
-    // В отличии от него, метод `.at()` бросает исключение,
-    //  если переданного ключа ещё нет в map.
-    Ghost &ghost = ghosts[ghostId];
-    initializeGhost(ghost, getGhostStartPosition(ghostId));
-}
-*/
-
-// std::vector<Bullet> &bullets
-
 static void updateGameOverLabel(sf::Text &label, const std::string &text)
 {
     label.setString(text);
@@ -29,8 +15,10 @@ void initializeGameScene(GameScene &scene, const sf::Vector2f &sceneSize)
         assert(false);
         exit(1);
     }
+
     initializeTank(scene.tank);
-    initializeBomb(scene.bomb);
+    initializeBombs(scene.bombs);
+
     scene.gameState = GameState::Playing;
     scene.gameOverBackground.setFillColor(TRANSPARENT_GRAY);
     scene.gameOverBackground.setSize(sceneSize);
@@ -50,10 +38,8 @@ void updateGameScene(GameScene &scene, float elapsedTime, sf::Clock &rechargeClo
         {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
             {
-                std::cout << scene.tank.rotation << std::endl;
                 Bullet bullet = createBullet(scene.tank, mousePosition);
                 scene.bullets.push_back(bullet);
-
                 rechargeClock.restart();
             }
         }
@@ -61,6 +47,24 @@ void updateGameScene(GameScene &scene, float elapsedTime, sf::Clock &rechargeClo
         for (auto &bullet : scene.bullets)
         {
             updateBullet(bullet, elapsedTime);
+        }
+
+        // Проверяем условие попадания пуль в бомбу
+
+        for (auto &bullet : scene.bullets)
+        {
+            const sf::FloatRect bulletBounds = getBulletBounds(bullet);
+            for (auto &bomb : scene.bombs)
+            {
+                if (getBombBounds(bomb).intersects(bulletBounds))
+                {
+                    injureBomb(bomb);
+                    // удалить израсходованный bullet
+                    continue;
+                    //updateGameOverLabel(scene.gameOverLabel, "Game Over! You lose.");
+                    //scene.gameState = GameState::PlayerLosed;
+                }
+            }
         }
 
         // Проверяем условие поражения - столкновение пакмана и призрака.
@@ -112,25 +116,22 @@ void drawGameScene(sf::RenderWindow &window, const GameScene &scene)
 
     // Персонажи рисуются после поля.
     drawTank(window, scene.tank);
-    drawBomb(window, scene.bomb);
+
+    for (const auto &bomb : scene.bombs)
+    {
+        drawBomb(window, bomb);
+    }
 
     for (const auto &bullet : scene.bullets)
     {
         drawBullet(window, bullet);
     }
-    // pair имеет тип `const std::pair<const GhostId, Ghost> &`
-    /*    for (const auto &pair : scene.ghosts)
-    {
-        drawGhost(window, pair.second);
-    }
 
-    */
-    /*
     if ((scene.gameState == GameState::PlayerLosed) || (scene.gameState == GameState::PlayerWon))
     {
         window.draw(scene.gameOverBackground);
         window.draw(scene.gameOverLabel);
-    }*/
+    }
 }
 
 void destroyGameScene(GameScene &scene)
